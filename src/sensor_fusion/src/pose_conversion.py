@@ -1,12 +1,9 @@
 #!/usr/bin/env python
 # skripta za objavljanje senzorskih meritev
 
-#import roslib
 import rospy
 import nav_msgs.msg
-import p2os_msgs.msg
 import geometry_msgs.msg
-import sensor_msgs.msg
 import math
 
 
@@ -45,7 +42,7 @@ def processLaser(lasMsg):
   
   
 def convert():
-  rospy.init_node("sensor_fusion")
+  rospy.init_node("convert_pose")
   rate = rospy.Rate(10)
  
   lasSub = rospy.Subscriber("/pose2D", geometry_msgs.msg.Pose2D, processLaser)

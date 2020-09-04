@@ -1,10 +1,10 @@
 <?xml version="1.0"?>
 <launch>
 
-  <!-- Complete simulation with gazevo_gui and rviz, odom -> base_link turned off for both laser_scan_matcher and
+  <!-- Complete simulation with gazebo_gui and rviz, odom -> base_link turned off for both laser_scan_matcher and
         ekf_localization_node to avoid tf clashing with gmapping -->
   
-  <include file="$(find sensor_fusion)/launch/sensor_fusion_gazebo_gui.launch">
+  <include file="$(find sensor_fusion)/launch/gazebo/sensor_fusion_gazebo_gui.launch">
   </include>
   
   <include file="$(find nav_bundle)/launch/nav_bundle.launch">
