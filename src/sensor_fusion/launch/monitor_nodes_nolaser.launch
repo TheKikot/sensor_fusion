@@ -10,18 +10,10 @@
   
   <node name="pose_conversion" pkg="sensor_fusion" type="pose_conversion.py" output="screen" />
   
-  <node name="ukf_localization_node" pkg="robot_localization" type="ukf_localization_node" output="screen" >
-    <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params.yaml" />
-  </node>
-  
-  <!-- 
+
   <node name="ekf_localization_node" pkg="robot_localization" type="ekf_localization_node" output="screen" >
-    <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params.yaml" />
+    <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params_nl.yaml" />
   </node>
-  
-  -->
-  
-  <!-- "rosbag record /scan /odom /tf" -->
   
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find sensor_fusion)/rviz/odom_demo.rviz"/>
   

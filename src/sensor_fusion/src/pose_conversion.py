@@ -4,39 +4,32 @@
 import rospy
 import nav_msgs.msg
 import geometry_msgs.msg
-import math
-
-
-def toQuat(roll, pitch, yaw):
-
-  cy = math.cos(yaw * 0.5)
-  sy = math.sin(yaw * 0.5)
-  cp = math.cos(pitch * 0.5)
-  sp = math.sin(pitch * 0.5)
-  cr = math.cos(roll * 0.5)
-  sr = math.sin(roll * 0.5)
-
-  q = [
-        cr * cp * cy + sr * sp * sy,
-        sr * cp * cy - cr * sp * sy,
-        cr * sp * cy + sr * cp * sy,
-        cr * cp * sy - sr * sp * cy
-      ]
-
-  return q  
-  
+from tf.transformations import quaternion_from_euler
+from visualization_msgs.msg import Marker
   
 def processLaser(lasMsg):
-  #print "theta: %0.2f" % (lasMsg.theta)
+  q = quaternion_from_euler(0.0, 0.0, lasMsg.theta)
+  
   odomMsg = nav_msgs.msg.Odometry()
+  odomMsg.header.frame_id = "odom"
+  odomMsg.child_frame_id = "hokuyo_laser"
+  
   odomMsg.pose.pose.position.x = lasMsg.x
   odomMsg.pose.pose.position.y = lasMsg.y
-  odomMsg.pose.pose.position.z = 0.0
-  q = toQuat(0.0, 0.0, lasMsg.theta)
-  odomMsg.pose.pose.orientation.x = q[1]
-  odomMsg.pose.pose.orientation.y = q[2]
-  odomMsg.pose.pose.orientation.z = q[3]
-  odomMsg.pose.pose.orientation.w = q[0]
+  odomMsg.pose.pose.position.z = 0.4
+  
+  odomMsg.pose.pose.orientation.x = q[0]
+  odomMsg.pose.pose.orientation.y = q[1]
+  odomMsg.pose.pose.orientation.z = q[2]
+  odomMsg.pose.pose.orientation.w = q[3]
+  
+  odomMsg.pose.covariance = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  
   posePub = rospy.Publisher("/laser_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
   
