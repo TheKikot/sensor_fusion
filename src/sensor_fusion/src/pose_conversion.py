@@ -23,12 +23,12 @@ def processLaser(lasMsg):
   odomMsg.pose.pose.orientation.z = q[2]
   odomMsg.pose.pose.orientation.w = q[3]
   
-  odomMsg.pose.covariance = [1.0, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 1.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 1.0]
+  odomMsg.pose.covariance = [0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
   
   posePub = rospy.Publisher("/laser_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
