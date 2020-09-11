@@ -518,7 +518,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 10
+      Keep: 3
       Name: odometry
       Position Tolerance: 0.100000001
       Shape:
@@ -552,7 +552,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 10
+      Keep: 3
       Name: odometry-filtered
       Position Tolerance: 0.100000001
       Shape:
@@ -586,7 +586,7 @@ Visualization Manager:
           Value: true
         Value: false
       Enabled: true
-      Keep: 10
+      Keep: 3
       Name: laser-position
       Position Tolerance: 0.100000001
       Shape:
@@ -635,11 +635,11 @@ Visualization Manager:
       Invert Z Axis: false
       Name: Current View
       Near Clip Distance: 0.00999999978
-      Scale: 132.386276
+      Scale: 77.8254471
       Target Frame: <Fixed Frame>
       Value: TopDownOrtho (rviz)
-      X: 1.58167219
-      Y: 2.42136478
+      X: -0.93762362
+      Y: 1.29807234
     Saved: ~
 Window Geometry:
   Displays:
