@@ -1,4 +1,4 @@
-image: ROS/maps/ucilnica.pgm
+image: ucilnica.pgm
 resolution: 0.050000
 origin: [-15.400000, -17.000000, 0.000000]
 negate: 0
