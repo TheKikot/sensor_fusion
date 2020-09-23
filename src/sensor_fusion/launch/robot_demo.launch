@@ -4,9 +4,8 @@
   <include file="$(find bot_description)/launch/minimal_with_urg.launch">
   </include>
   
-  <!-- Gmapping -->
-  <arg name="custom_gmapping_launch_file" default="$(find bot_description)/launch/hokuyo_gmapping.launch.xml"/>
-  <include file="$(arg custom_gmapping_launch_file)"/>
+  <!-- AMLC -->
+  
   
   
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
