@@ -15,6 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
   nav_msgs
   p2os_msgs
   sensor_msgs
+  marvelmind_nav
 )
 
 ## System dependencies are found with CMake's conventions
