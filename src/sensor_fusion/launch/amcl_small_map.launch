@@ -28,7 +28,7 @@
   <node name="map" pkg="map_server" type="map_server" args="/home/kikot/ROS/maps/smap.yaml" />
   
   <!-- AMCL node -->
-  <include file="$(find sensor_fusion)/launch/amcl.launch"/>
+  <include file="$(find sensor_fusion)/launch/amcl_pioneer.launch"/>
   
   <!-- Include move base launch file -->
   <!-- Use with Pioneer Gazebo simulation and Pioneer3dx robot platform -->

@@ -7,7 +7,6 @@
   <arg name="yaw" default="0"/>
 
   <node pkg="amcl" type="amcl" name="amcl" output="screen">
-    <remap from="/scan" to="/base_scan"/>
     <param name="amcl/initial_pose_x" value="$(arg x)" />
     <param name="amcl/initial_pose_y" value="$(arg y)" />
     <param name="amcl/initial_pose_a" value="$(arg yaw)" />

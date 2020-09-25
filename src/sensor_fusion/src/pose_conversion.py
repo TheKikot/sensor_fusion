@@ -4,6 +4,7 @@
 import rospy
 import nav_msgs.msg
 import geometry_msgs.msg
+import marvelmind_nav.msg
 from tf.transformations import quaternion_from_euler
 from visualization_msgs.msg import Marker
   
@@ -23,9 +24,9 @@ def processLaser(lasMsg):
   odomMsg.pose.pose.orientation.z = q[2]
   odomMsg.pose.pose.orientation.w = q[3]
   
-  odomMsg.pose.covariance = [0.01, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.01, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+  odomMsg.pose.covariance = [0.000001, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.000001, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.00001, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
@@ -33,12 +34,34 @@ def processLaser(lasMsg):
   posePub = rospy.Publisher("/laser_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
   
+def processGPS(gpsMsg):
+
+  odomMsg = nav_msgs.msg.Odometry()
+  odomMsg.header.stamp = rospy.Time.now()
+  odomMsg.header.frame_id = "odom"
+  odomMsg.child_frame_id = "hedgehog"
+  
+  odomMsg.pose.pose.position.x = gpsMsg.x_m
+  odomMsg.pose.pose.position.y = gpsMsg.y_m
+  odomMsg.pose.pose.position.z = gpsMsg.z_m
+  
+  
+  odomMsg.pose.covariance = [0.000000000001, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.000000000001, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
+                             
+  posePub = rospy.Publisher("/hedgehog_position", nav_msgs.msg.Odometry, queue_size=100)
+  posePub.publish(odomMsg)
   
 def convert():
   rospy.init_node("convert_pose")
   rate = rospy.Rate(10)
  
   lasSub = rospy.Subscriber("/pose2D", geometry_msgs.msg.Pose2D, processLaser)
+  gpsSub = rospy.Subscriber("/hedge_pos", marvelmind_nav.msg.hedge_pos, processGPS)
   
   while not rospy.is_shutdown():
     rate.sleep()

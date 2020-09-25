@@ -5,83 +5,52 @@ import rospy
 import nav_msgs.msg
 import geometry_msgs.msg
 import marvelmind_nav.msg
-#import math
+import message_filters
 
 global pathOdom
 global pathFilter
 global pathLaser
 global pathGPS
+global gps_init_pose
 
 
-def addOdometry(msg):
+def odom_to_path(msg, path, frame_id):
+  pose = geometry_msgs.msg.PoseStamped()
+  pose.pose = msg.pose.pose
+  pose.header.stamp = msg.header.stamp
+  pose.header.frame_id = msg.header.frame_id
+  
+  path.header.stamp = rospy.Time.now()
+  path.header.frame_id = frame_id
+  path.poses.append(pose)
+  
+  return path
+  
+
+def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
+  #print("called addToPath")
   global pathOdom
-  
-  
-  pose = geometry_msgs.msg.PoseStamped()
-  pose.pose = msg.pose.pose
-  pose.header.stamp = msg.header.stamp
-  pose.header.frame_id = msg.header.frame_id
-  
-  pathOdom.header.stamp = rospy.Time.now()
-  pathOdom.header.frame_id = "odom"
-  pathOdom.poses.append(pose)
-  
-  pathPub = rospy.Publisher("/odom_path", nav_msgs.msg.Path, queue_size=100)
-  pathPub.publish(pathOdom)
-
-
-def addLaser(msg):
   global pathLaser
-  
-  
-  pose = geometry_msgs.msg.PoseStamped()
-  pose.pose = msg.pose.pose
-  pose.header.stamp = msg.header.stamp
-  pose.header.frame_id = msg.header.frame_id
-  
-  pathLaser.header.stamp = rospy.Time.now()
-  pathLaser.header.frame_id = "odom"
-  pathLaser.poses.append(pose)
-  
-  pathPub = rospy.Publisher("/laser_path", nav_msgs.msg.Path, queue_size=100)
-  pathPub.publish(pathLaser)
-
-
-def addFilter(msg):
   global pathFilter
-  
-  
-  pose = geometry_msgs.msg.PoseStamped()
-  pose.pose = msg.pose.pose
-  pose.header.stamp = msg.header.stamp
-  pose.header.frame_id = msg.header.frame_id
-  
-  pathFilter.header.stamp = rospy.Time.now()
-  pathFilter.header.frame_id = "odom"
-  pathFilter.poses.append(pose)
-  
-  pathPub = rospy.Publisher("/filter_path", nav_msgs.msg.Path, queue_size=100)
-  pathPub.publish(pathFilter)
-
-def addGPS(msg):
   global pathGPS
   
+  pathOdom = odom_to_path(odom_msg, pathOdom, "odom")
+  pathLaser = odom_to_path(laser_msg, pathLaser, "odom")
+  pathFilter = odom_to_path(filter_msg, pathFilter, "odom")
+  pathGPS = odom_to_path(gps_msg, pathGPS, "odom")
   
-  pose = geometry_msgs.msg.PoseStamped()
-  pose.pose.position.x = msg.x_m
-  pose.pose.position.y = msg.y_m
-  pose.pose.position.z = msg.z_m
-  pose.header.stamp = rospy.Time.now()
-  pose.header.frame_id = "odom"
+  pathPub = rospy.Publisher("/odom_path", nav_msgs.msg.Path, queue_size=10)
+  pathPub.publish(pathOdom)
   
-  pathGPS.header.stamp = rospy.Time.now()
-  pathGPS.header.frame_id = "odom"
-  pathGPS.poses.append(pose)
+  pathPub = rospy.Publisher("/laser_path", nav_msgs.msg.Path, queue_size=10)
+  pathPub.publish(pathLaser)
   
-  pathPub = rospy.Publisher("/GPS_path", nav_msgs.msg.Path, queue_size=100)
+  pathPub = rospy.Publisher("/filter_path", nav_msgs.msg.Path, queue_size=10)
+  pathPub.publish(pathFilter)
+  
+  pathPub = rospy.Publisher("/GPS_path", nav_msgs.msg.Path, queue_size=10)
   pathPub.publish(pathGPS)
-
-
+  
   
 def make_path():
   rospy.init_node("path_building")
@@ -90,21 +59,44 @@ def make_path():
   global pathLaser
   global pathFilter
   global pathGPS
+  global gps_init_pose
   pathOdom = nav_msgs.msg.Path()
   pathLaser = nav_msgs.msg.Path()
   pathFilter = nav_msgs.msg.Path()
   pathGPS = nav_msgs.msg.Path()
+  gps_init_pose = []
   
-  
-  odomSub = rospy.Subscriber("/odom", nav_msgs.msg.Odometry, addOdometry)
-  laserSub = rospy.Subscriber("/laser_postion", nav_msgs.msg.Odometry, addLaser)
-  filterSub = rospy.Subscriber("/odometry_filtered", nav_msgs.msg.Odometry, addFilter)
-  gpsSub = rospy.Subscriber("/hedge_pos", marvelmind_nav.msg.hedge_pos, addGPS)
-  
+  odom_pose = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
+  gps_pose = rospy.wait_for_message("/hedge_pos", marvelmind_nav.msg.hedge_pos)
+  gps_init_pose.append( odom_pose.pose.pose.position.x - gps_pose.x_m )
+  gps_init_pose.append( odom_pose.pose.pose.position.y - gps_pose.y_m )
+  gps_init_pose.append( odom_pose.pose.pose.position.z - gps_pose.z_m )
+  gps_init_pose.append( 1.0 )
+  gps_init_pose.append( 1.0 )
+  gps_init_pose.append( 1.0 )
   
   while not rospy.is_shutdown():
+    odom_msg = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
+    laser_msg = rospy.wait_for_message("/laser_position", nav_msgs.msg.Odometry)
+    filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
+    gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
+    
+    addToPath(odom_msg, laser_msg, filter_msg, gps_msg)
+    
     rate.sleep()
   
+  '''
+  odomSub = message_filters.Subscriber("/odom", nav_msgs.msg.Odometry)
+  laserSub = message_filters.Subscriber("/laser_position", nav_msgs.msg.Odometry)
+  filterSub = message_filters.Subscriber("/odometry/filtered", nav_msgs.msg.Odometry)
+  gpsSub = message_filters.Subscriber("/hedgehog_position", nav_msgs.msg.Odometry)
+  
+  ts = message_filters.TimeSynchronizer([odomSub, laserSub, filterSub, gpsSub], 100)
+  ts.registerCallback(addToPath)
+  
+  print("initialized!")
+  rospy.spin()
+  '''
 
 if __name__ == "__main__":
 

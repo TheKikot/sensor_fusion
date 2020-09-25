@@ -1,0 +1,27 @@
+<?xml version="1.0"?>
+<launch>
+  
+  <!-- bringup -->
+  <include file="$(find bot_description)/launch/minimal_with_urg.launch">
+  </include>
+  
+  <!-- amcl -->
+  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+  
+  <!-- static tf for the laser -->
+  <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
+   args="0.125 0.0 0.4 0.0 0.0 0.0 /base_link /hokuyo_laser 20" />
+
+
+  <!-- Move base -->
+  <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml">
+    <arg name="base_frame_id" value="base_footprint" />
+  </include>
+  
+  <!-- running the marvelmind indoor gps -->
+  <node pkg="marvelmind_nav" type="hedge_rcv_bin" name="hedge_rcv_bin" args="/dev/ttyACM1" />
+  
+  <!-- map -->
+  <node pkg="map_server" type="map_server" name="map_server" args="~/ROS/maps/map.yaml" />
+    
+</launch>
