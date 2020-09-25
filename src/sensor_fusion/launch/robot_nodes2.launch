@@ -6,7 +6,7 @@
   </include>
   
   <!-- amcl -->
-  <node pkg="amcl" type="amcl" name="amcl" output="screen">
+  <node pkg="amcl" type="amcl" name="amcl" output="screen" />
   
   <!-- static tf for the laser -->
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
