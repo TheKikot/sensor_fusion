@@ -46,13 +46,20 @@ def processGPS(gpsMsg):
   odomMsg.pose.pose.position.z = gpsMsg.z_m
   
   
-  odomMsg.pose.covariance = [0.000000000001, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.000000000001, 0.0, 0.0, 0.0, 0.0,
+  odomMsg.pose.covariance = [1e-10, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 1e-10, 0.0, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
-                             
+  '''                           
+  odomMsg.pose.covariance = [1e-09, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.001, 1e-09, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 1000000.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 1000000.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 1e-09]
+  '''                        
   posePub = rospy.Publisher("/hedgehog_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
   

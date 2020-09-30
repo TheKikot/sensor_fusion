@@ -13,7 +13,7 @@ def extract_coordinates(path):
   x = []
   y = []
   
-  for i in range(0, len(path)) :
+  for i in range(0, len(path.poses)) :
     x.append(path.poses[i].pose.position.x)
     y.append(path.poses[i].pose.position.y)
   

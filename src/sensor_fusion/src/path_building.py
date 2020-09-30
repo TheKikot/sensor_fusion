@@ -67,19 +67,20 @@ def make_path():
   gps_init_pose = []
   
   odom_pose = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
-  gps_pose = rospy.wait_for_message("/hedge_pos", marvelmind_nav.msg.hedge_pos)
-  gps_init_pose.append( odom_pose.pose.pose.position.x - gps_pose.x_m )
-  gps_init_pose.append( odom_pose.pose.pose.position.y - gps_pose.y_m )
-  gps_init_pose.append( odom_pose.pose.pose.position.z - gps_pose.z_m )
-  gps_init_pose.append( 1.0 )
-  gps_init_pose.append( 1.0 )
-  gps_init_pose.append( 1.0 )
+  gps_pose = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
+  gps_init_pose.append( odom_pose.pose.pose.position.x - gps_pose.pose.pose.position.x )
+  gps_init_pose.append( odom_pose.pose.pose.position.y - gps_pose.pose.pose.position.y )
+  gps_init_pose.append( odom_pose.pose.pose.position.z - gps_pose.pose.pose.position.z )
+  print("x bias: %2f, y bias: %2f", gps_init_pose[0], gps_init_pose[1])
   
   while not rospy.is_shutdown():
     odom_msg = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
     laser_msg = rospy.wait_for_message("/laser_position", nav_msgs.msg.Odometry)
     filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
     gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
+    
+    gps_pose.pose.pose.position.x = gps_pose.pose.pose.position.x + gps_init_pose[0]
+    gps_pose.pose.pose.position.y = gps_pose.pose.pose.position.y + gps_init_pose[1]
     
     addToPath(odom_msg, laser_msg, filter_msg, gps_msg)
     
