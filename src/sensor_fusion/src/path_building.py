@@ -79,9 +79,12 @@ def make_path():
     filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
     gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
     
-    gps_pose.pose.pose.position.x = gps_pose.pose.pose.position.x + gps_init_pose[0]
-    gps_pose.pose.pose.position.y = gps_pose.pose.pose.position.y + gps_init_pose[1]
-    
+    # popravljanje koordinat in orientacije
+    #b = gps_msg.pose.pose.position.x + gps_init_pose[0]
+    #a = gps_msg.pose.pose.position.y + gps_init_pose[1]
+    #gps_msg.pose.pose.position.x =  (a)
+    #gps_msg.pose.pose.position.y =  (b)
+    #gps_msg.pose.pose.position.z =  (gps_msg.pose.pose.position.z + gps_init_pose[2])
     addToPath(odom_msg, laser_msg, filter_msg, gps_msg)
     
     rate.sleep()
