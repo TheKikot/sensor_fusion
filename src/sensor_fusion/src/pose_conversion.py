@@ -12,6 +12,7 @@ def processLaser(lasMsg):
   q = quaternion_from_euler(0.0, 0.0, lasMsg.theta)
   
   odomMsg = nav_msgs.msg.Odometry()
+  odomMsg.header.stamp = rospy.Time.now()
   odomMsg.header.frame_id = "odom"
   odomMsg.child_frame_id = "hokuyo_laser"
   

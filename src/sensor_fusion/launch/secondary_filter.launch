@@ -5,12 +5,15 @@
   <node name="ekf2" pkg="robot_localization" type="ekf_localization_node" output="screen" >
     <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params_secondary.yaml" />
     <remap from="/odometry/filtered" to="ekf2"/>
+    <remap from="/cmd_vel" to="/cmd_vel_mux/input/teleop"/>
   </node>
   
   <!-- rviz -->
   <!-- <node name="rviz" pkg="rviz" type="rviz" args="-d $(find sensor_fusion)/rviz/odom.rviz"/> -->
   
-  <node name="pose_conversion2" pkg="sensor_fusion" type="pose_conversion_secondary.py" output="screen" />
+  <node name="pose_conversion2" pkg="sensor_fusion" type="pose_conversion_secondary_sync.py" output="screen" />
+  
+  <node name="path_buliding2" pkg="sensor_fusion" type="path_building_secondary.py" output="screen" />
   
   <!-- path building and publishing (slow) -->
   <!-- <node pkg="sensor_fusion" type="path_building.py" name="path_building" /> -->

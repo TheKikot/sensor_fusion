@@ -1,11 +1,10 @@
 #!/usr/bin/env python
-# skripta za prikaz napake / razlike med potmi
+# skripta za prikaz poti
 
 import rospy
 import nav_msgs.msg
 import geometry_msgs.msg
 import matplotlib.pyplot as plt
-#import math
 
 
 def extract_coordinates(path):
@@ -24,10 +23,10 @@ def plot_paths():
   rate = rospy.Rate(10)
   
     
-  odom_path = rospy.wait_for_message("/odom_path", nav_msgs.msg.Path)
-  laser_path = rospy.wait_for_message("/laser_path", nav_msgs.msg.Path)
-  filter_path = rospy.wait_for_message("/filter_path", nav_msgs.msg.Path)
-  gps_path = rospy.wait_for_message("/GPS_path", nav_msgs.msg.Path)
+  odom_path = rospy.wait_for_message("/_odom_path", nav_msgs.msg.Path)
+  laser_path = rospy.wait_for_message("/_laser_path", nav_msgs.msg.Path)
+  filter_path = rospy.wait_for_message("/_filter2_path", nav_msgs.msg.Path)
+  gps_path = rospy.wait_for_message("/_GPS_path", nav_msgs.msg.Path)
   
   (odomx, odomy) = extract_coordinates(odom_path)
   (laserx, lasery) = extract_coordinates(laser_path)
