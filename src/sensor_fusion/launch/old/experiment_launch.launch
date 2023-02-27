@@ -1,0 +1,15 @@
+<?xml version="1.0"?>
+<!-- this is an experimental script for testing the curent configuration with data from command readings (/mobile_base/commands/velocity) -->
+<launch>
+  <param name="use_sim_time" value="true" type="boolean"/> 
+  
+  <include file="$(find sensor_fusion)/launch/yalf_experiment.launch"/>
+  
+  <node pkg="rosbag" type="play" name="rosbagplayer" args="--clock /home/kikot/ROS/bagfiles/2020-09-30-17-18-21.bag"/>
+  
+  <node name="path_dist_experiment" pkg="sensor_fusion" type="path_dist_experiment.py" output="screen" launch-prefix="bash -c 'sleep 58; $0 $@' "/>
+  
+  <node name="plot_paths_experiment" pkg="sensor_fusion" type="plot_paths_experiment.py" output="screen" launch-prefix="bash -c 'sleep 58; $0 $@' "/>
+  
+  
+</launch>

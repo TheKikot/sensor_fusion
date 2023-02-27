@@ -9,16 +9,15 @@ world_frame: odom
 transform_time_offset: 0.01
 
 smooth_lagged_data: true
-dynamic_process_noise_covariance: false
-
+dynamic_process_noise_covariance: true
 
 odom0: /odometry_position2
-odom0_config: [true,  true,  false,
+odom0_config: [true, true, false,
                false, false, true,
                true, true, false,
                false, false, true,
                false, false, false]
-              
+               
 #odom0_differential: true
 
 odom1: /laser_position2
@@ -47,10 +46,6 @@ odom1_config: [true,  true,  false,
 
 # this removes the clashing between gmapping and robot_localization both publishing the transform odom -> base_link
 publish_tf: false
-history_length: 1.0
-use_control: false
-debug_out_file: "/home/kikot/debugfile"
-debug: false
 
 # [ADVANCED] The process noise covariance matrix can be difficult to tune, and can vary for each application, so it is exposed as a configuration parameter. This matrix represents the noise we add to the total error after each prediction step. 
 

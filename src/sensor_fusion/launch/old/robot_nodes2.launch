@@ -22,6 +22,6 @@
   <node pkg="marvelmind_nav" type="hedge_rcv_bin" name="hedge_rcv_bin" args="/dev/ttyACM1" />
   
   <!-- map -->
-  <node pkg="map_server" type="map_server" name="map_server" args="/home/team_kappa/ROS/maps/map.yaml" />
+  <node pkg="map_server" type="map_server" name="map_server" args="/home/vicos/ROS/maps/map.yaml" />
     
 </launch>

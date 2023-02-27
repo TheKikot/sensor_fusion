@@ -12,7 +12,6 @@ from visualization_msgs.msg import Marker
 diff_x = 0
 diff_y = 0
 diff_angle = 0
-last_gps_measurement = (0,0,0) # used to average current measurement with previous to get the middle point between the two beacons
 
 def init_pose():
   global diff_x
@@ -29,26 +28,6 @@ def init_pose():
   print(diff_x)
   print(diff_y)
   print(diff_angle)
-  
-  # publish the position to /initialpose topic
-  
-  initPose = geometry_msgs.msg.PoseWithCovarianceStamped()
-  initPose.header.stamp = rospy.Time.now()
-  initPose.header.frame_id = "odom"
-  
-  initPose.pose.pose.position.x = init_gps_msg.x_m
-  initPose.pose.pose.position.y = init_gps_msg.y_m
-  initPose.pose.pose.position.z = init_gps_msg.z_m
-  initPose.pose.pose.orientation = quaternion_from_euler(0.0, 0.0, ((math.pi*init_gps_msg.angle/180) ))
-  initPose.pose.covariance = [1e-10, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 1e-10, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
-  
-  initPosePub = rospy.Publisher("/initialpose", geometry_msgs.msg.PoseWithCovarianceStamped, queue_size=1)
-  initPosePub.publish()
   
 def processLaser(lasMsg):
   q = quaternion_from_euler(0.0, 0.0, lasMsg.theta)
@@ -67,9 +46,9 @@ def processLaser(lasMsg):
   odomMsg.pose.pose.orientation.z = q[2]
   odomMsg.pose.pose.orientation.w = q[3]
   
-  odomMsg.pose.covariance = [1e-5, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 1e-5, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.1, 0.0, 0.0, 0.0,
+  odomMsg.pose.covariance = [0.000001, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.000001, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.00001, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
@@ -78,16 +57,15 @@ def processLaser(lasMsg):
   posePub.publish(odomMsg)
   
 def processGPS(gpsMsg):
-  global last_gps_measurement
-  q = quaternion_from_euler(0.0, 0.0, ((math.pi*gpsMsg.angle/180) ))
+  q = quaternion_from_euler(0.0, 0.0, ((math.pi*gpsMsg.angle/180) )) # - diff_angle))
   
   odomMsg = nav_msgs.msg.Odometry()
   odomMsg.header.stamp = rospy.Time.now()
-  odomMsg.header.frame_id = "map"
+  odomMsg.header.frame_id = "hedge-map"
   odomMsg.child_frame_id = "hedgehog"
   
-  odomMsg.pose.pose.position.x = (gpsMsg.x_m + last_gps_measurement[0])/2 # averaging with the measurement from the other paired hedgehog
-  odomMsg.pose.pose.position.y = (gpsMsg.y_m + last_gps_measurement[1])/2 # averaging with the measurement from the other paired hedgehog
+  odomMsg.pose.pose.position.x = gpsMsg.x_m #+ diff_x
+  odomMsg.pose.pose.position.y = gpsMsg.y_m #+ diff_y
   odomMsg.pose.pose.position.z = gpsMsg.z_m
   
   odomMsg.pose.pose.orientation.x = q[0]
@@ -102,8 +80,14 @@ def processGPS(gpsMsg):
                              0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
-                      
-  last_gps_measurement = (gpsMsg.x_m, gpsMsg.y_m, gpsMsg.angle)   
+  '''                           
+  odomMsg.pose.covariance = [1e-09, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.001, 1e-09, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 1000000.0, 0.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 1000000.0, 0.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 1000000.0, 0.0,
+                             0.0, 0.0, 0.0, 0.0, 0.0, 1e-09]
+  '''                        
   posePub = rospy.Publisher("/hedgehog_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
   
@@ -122,6 +106,9 @@ if __name__ == "__main__":
     rate = rospy.Rate(50)
  
     init_pose()
+    print(diff_x)
+    print(diff_y)
+    print(diff_angle)
     convert()
   except rospy.ROSInterruptException: pass
 

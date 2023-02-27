@@ -7,13 +7,13 @@ import geometry_msgs.msg
 import marvelmind_nav.msg
 import message_filters
 
+# spremenljivke ki hranijo zapis poti
 global pathOdom
 global pathFilter
 global pathLaser
 global pathGPS
-global gps_init_pose
 
-
+# pretvorba formata informacije o polozaju
 def odom_to_path(msg, path, frame_id):
   pose = geometry_msgs.msg.PoseStamped()
   pose.pose = msg.pose.pose
@@ -26,9 +26,8 @@ def odom_to_path(msg, path, frame_id):
   
   return path
   
-
+# doda vsaki poti novi polozaj
 def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
-  #print("called addToPath")
   global pathOdom
   global pathLaser
   global pathFilter
@@ -37,7 +36,7 @@ def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
   pathOdom = odom_to_path(odom_msg, pathOdom, "odom")
   pathLaser = odom_to_path(laser_msg, pathLaser, "odom")
   pathFilter = odom_to_path(filter_msg, pathFilter, "odom")
-  pathGPS = odom_to_path(gps_msg, pathGPS, "odom")
+  pathGPS = odom_to_path(gps_msg, pathGPS, "map")
   
   pathPub = rospy.Publisher("/odom_path", nav_msgs.msg.Path, queue_size=10)
   pathPub.publish(pathOdom)
@@ -51,7 +50,7 @@ def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
   pathPub = rospy.Publisher("/GPS_path", nav_msgs.msg.Path, queue_size=10)
   pathPub.publish(pathGPS)
   
-  
+# glavna funkcija, ki 10x v sekundi pocaka na vse 4 polozaje in klice addToPath, da jih doda v poti
 def make_path():
   rospy.init_node("path_building")
   rate = rospy.Rate(10)
@@ -59,19 +58,11 @@ def make_path():
   global pathLaser
   global pathFilter
   global pathGPS
-  global gps_init_pose
+
   pathOdom = nav_msgs.msg.Path()
   pathLaser = nav_msgs.msg.Path()
   pathFilter = nav_msgs.msg.Path()
   pathGPS = nav_msgs.msg.Path()
-  gps_init_pose = []
-  
-  odom_pose = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
-  gps_pose = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
-  gps_init_pose.append( odom_pose.pose.pose.position.x - gps_pose.pose.pose.position.x )
-  gps_init_pose.append( odom_pose.pose.pose.position.y - gps_pose.pose.pose.position.y )
-  gps_init_pose.append( odom_pose.pose.pose.position.z - gps_pose.pose.pose.position.z )
-  print("x bias: %2f, y bias: %2f", gps_init_pose[0], gps_init_pose[1])
   
   while not rospy.is_shutdown():
     odom_msg = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
@@ -79,28 +70,10 @@ def make_path():
     filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
     gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
     
-    # popravljanje koordinat in orientacije
-    #b = gps_msg.pose.pose.position.x + gps_init_pose[0]
-    #a = gps_msg.pose.pose.position.y + gps_init_pose[1]
-    #gps_msg.pose.pose.position.x =  (a)
-    #gps_msg.pose.pose.position.y =  (b)
-    #gps_msg.pose.pose.position.z =  (gps_msg.pose.pose.position.z + gps_init_pose[2])
     addToPath(odom_msg, laser_msg, filter_msg, gps_msg)
     
     rate.sleep()
-  
-  '''
-  odomSub = message_filters.Subscriber("/odom", nav_msgs.msg.Odometry)
-  laserSub = message_filters.Subscriber("/laser_position", nav_msgs.msg.Odometry)
-  filterSub = message_filters.Subscriber("/odometry/filtered", nav_msgs.msg.Odometry)
-  gpsSub = message_filters.Subscriber("/hedgehog_position", nav_msgs.msg.Odometry)
-  
-  ts = message_filters.TimeSynchronizer([odomSub, laserSub, filterSub, gpsSub], 100)
-  ts.registerCallback(addToPath)
-  
-  print("initialized!")
-  rospy.spin()
-  '''
+
 
 if __name__ == "__main__":
 

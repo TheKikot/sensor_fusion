@@ -1,5 +1,6 @@
 #!/usr/bin/env python
 # skripta za prikaz napake / razlike med potmi
+#<!-- this is an experimental script for testing the curent configuration with data from command readings (/mobile_base/commands/velocity) -->
 
 import rospy
 import nav_msgs.msg
@@ -34,29 +35,26 @@ def calculate_distances():
     
   odom_path = rospy.wait_for_message("/_odom_path", nav_msgs.msg.Path)
   laser_path = rospy.wait_for_message("/_laser_path", nav_msgs.msg.Path)
-  #filter_path = rospy.wait_for_message("/_filter_path", nav_msgs.msg.Path)
-  filter_path = rospy.wait_for_message("/_filter2_path", nav_msgs.msg.Path)
+  filter_path = rospy.wait_for_message("/_filter_path", nav_msgs.msg.Path)
+  sec_filter_path = rospy.wait_for_message("/_filter2_path", nav_msgs.msg.Path)
   gps_path = rospy.wait_for_message("/_GPS_path", nav_msgs.msg.Path)
   
   odom_dist = distance(odom_path, gps_path)
   laser_dist = distance(laser_path, gps_path)
   filter_dist = distance(filter_path, gps_path)
-  #sec_dist = distance(sec_filter_path, gps_path)
+  sec_dist = distance(sec_filter_path, gps_path)
   
   
   plt.plot(range(0, len(odom_dist)), odom_dist, 'r', label='odometry')
   plt.plot(range(0, len(laser_dist)), laser_dist, 'm', label='laser')
   plt.plot(range(0, len(filter_dist)), filter_dist, 'g', label='filter')
-  
-  #plt.plot(range(0, len(sec_dist)), sec_dist, 'y', label='secondary_filter')
+  plt.plot(range(0, len(sec_dist)), sec_dist, 'y', label='secondary_filter')
   plt.xlabel('point in trajectory')
   plt.ylabel('square distance between points')
   plt.title("Square trajectory error")
   plt.legend()
   plt.show()
-  print("mean square error for odometry: ", sum(odom_dist)/len(odom_dist))
-  print("mean square error for laser: ", sum(laser_dist)/len(laser_dist))
-  print("mean square error for filter: ", sum(filter_dist)/len(filter_dist))
+  
 
 if __name__ == "__main__":
 

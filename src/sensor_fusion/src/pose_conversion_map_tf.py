@@ -6,50 +6,41 @@ import nav_msgs.msg
 import geometry_msgs.msg
 import marvelmind_nav.msg
 import math
-from tf.transformations import quaternion_from_euler, euler_from_quaternion
+import tf
+from tf.transformations import quaternion_from_euler
 from visualization_msgs.msg import Marker
 
-diff_x = 0
-diff_y = 0
-diff_angle = 0
+global init_gps_msg
+br = tf.TransformBroadcaster()
+#tfPub = rospy.Publisher("map_to_odom", marvelmind_nav.msg.hedge_pos_ang, queue_size=10)
 last_gps_measurement = (0,0,0) # used to average current measurement with previous to get the middle point between the two beacons
 
-def init_pose():
-  global diff_x
-  global diff_y
-  global diff_angle
-  init_pose_odom=rospy.wait_for_message("/odom", nav_msgs.msg.Odometry, timeout=3)
-  init_gps_msg=rospy.wait_for_message("/hedge_pos_ang", marvelmind_nav.msg.hedge_pos_ang, timeout=3)
-  init_angle_odom=euler_from_quaternion([init_pose_odom.pose.pose.orientation.x, init_pose_odom.pose.pose.orientation.y, init_pose_odom.pose.pose.orientation.z, init_pose_odom.pose.pose.orientation.w])
-  #print("Init angle: ", init_angle_odom)
+def publish_tf():
+  global init_gps_msg
+  global br
+  br.sendTransform((init_gps_msg.x_m, init_gps_msg.y_m, init_gps_msg.z_m),
+                     quaternion_from_euler(0.0, 0.0, ((math.pi*init_gps_msg.angle/180) )),
+                     rospy.Time.now(), "odom", "map")
+  #tfPub.publish(init_gps_msg)
+
+# reads the initial pose by averaging num readings from indoor gps
+def init_pose(num):
+  global init_gps_msg
+  init_gps_msg=marvelmind_nav.msg.hedge_pos_ang()
+  init_gps_msg.x_m = 0
+  init_gps_msg.y_m = 0
+  init_gps_msg.z_m = 0
+  init_gps_msg.angle = 0
+  msg = [0 for i in range(num)]
+  for i in range(num):
+    msg[i] = rospy.wait_for_message("/hedge_pos_ang", marvelmind_nav.msg.hedge_pos_ang, timeout=3)
+    init_gps_msg.x_m += (msg[i].x_m)/num
+    init_gps_msg.y_m += (msg[i].y_m)/num
+    init_gps_msg.z_m += (msg[i].z_m)/num
+    init_gps_msg.angle += (msg[i].angle)/num
   
-  diff_x = init_pose_odom.pose.pose.position.x - init_gps_msg.x_m
-  diff_y = init_pose_odom.pose.pose.position.y - init_gps_msg.y_m
-  diff_angle = init_angle_odom[2] - init_gps_msg.angle
-  print(diff_x)
-  print(diff_y)
-  print(diff_angle)
-  
-  # publish the position to /initialpose topic
-  
-  initPose = geometry_msgs.msg.PoseWithCovarianceStamped()
-  initPose.header.stamp = rospy.Time.now()
-  initPose.header.frame_id = "odom"
-  
-  initPose.pose.pose.position.x = init_gps_msg.x_m
-  initPose.pose.pose.position.y = init_gps_msg.y_m
-  initPose.pose.pose.position.z = init_gps_msg.z_m
-  initPose.pose.pose.orientation = quaternion_from_euler(0.0, 0.0, ((math.pi*init_gps_msg.angle/180) ))
-  initPose.pose.covariance = [1e-10, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 1e-10, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.01, 0.0, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
-  
-  initPosePub = rospy.Publisher("/initialpose", geometry_msgs.msg.PoseWithCovarianceStamped, queue_size=1)
-  initPosePub.publish()
-  
+
+                       
 def processLaser(lasMsg):
   q = quaternion_from_euler(0.0, 0.0, lasMsg.theta)
   
@@ -112,6 +103,7 @@ def convert():
   gpsSub = rospy.Subscriber("/hedge_pos_ang", marvelmind_nav.msg.hedge_pos_ang, processGPS)
   
   while not rospy.is_shutdown():
+    publish_tf()
     rate.sleep()
   
 
@@ -121,7 +113,7 @@ if __name__ == "__main__":
     rospy.init_node("convert_pose")
     rate = rospy.Rate(50)
  
-    init_pose()
+    init_pose(20)
     convert()
   except rospy.ROSInterruptException: pass
 

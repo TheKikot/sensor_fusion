@@ -1,0 +1,5 @@
+-> zaženi robot_nodes.launch na robotovem računalniku in potem monitor_nodes.launch na workstationu.
+
+-> za snemanje zaženi rosbag record -a -O <ime_posnetka>
+
+-> za premikanje robota zaženi roslaunch turtlebot_teleop keyboard_teleop.launch

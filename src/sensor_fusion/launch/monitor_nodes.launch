@@ -12,7 +12,7 @@
   </node>
   
   <!-- pose conversion -->
-  <node name="pose_conversion" pkg="sensor_fusion" type="pose_conversion.py" output="screen" />
+  <node name="pose_conversion" pkg="sensor_fusion" type="pose_conversion_map_tf.py" output="screen" />
   
   <!-- robot localization filter (ekf) -->
   <node name="ekf_localization_node" pkg="robot_localization" type="ekf_localization_node" output="screen" >
@@ -24,5 +24,16 @@
   
   <!-- path building and publishing (slow) -->
   <node pkg="sensor_fusion" type="path_building.py" name="path_building" />
+  
+  <!-- experiment: initial pose from GPS data -->
+  
+  <!-- AMCL for map -> odom tf -->
+  <!-- node pkg="amcl" type="amcl" name="amcl" output="screen">
+    <param name="amcl/initial_pose_x" value="0" />
+    <param name="amcl/initial_pose_y" value="0" />
+    <param name="amcl/initial_pose_a" value="0" />
+  </node-->
+  
+
   
 </launch>

@@ -34,6 +34,10 @@ def plot_paths():
   # transform gps_path from map -> odom frame
   time = rospy.Time.now()
   
+  poseGps = gps_path.poses[0]
+  poseGps.header.stamp = time
+  poseGps = tfBuffer.transform(poseGps, 'odom', rospy.Duration(1.0))
+  
   gps_path_odom = nav_msgs.msg.Path()
   gps_path_odom.header.frame_id = "odom"
   gps_path_odom.header.stamp = time
@@ -43,7 +47,7 @@ def plot_paths():
     pose = tfBuffer.transform(pose, 'odom', rospy.Duration(1.0))
     gps_path_odom.poses.append(pose)
     
-  # get coordinates from paths
+  
   (odomx, odomy) = extract_coordinates(odom_path)
   (laserx, lasery) = extract_coordinates(laser_path)
   (filterx, filtery) = extract_coordinates(filter_path)

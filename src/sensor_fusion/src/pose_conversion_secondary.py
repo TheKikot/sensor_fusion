@@ -38,12 +38,12 @@ def processLaser(lasMsg):
   
 def processOdometry(odomMsg):
     
-  odomMsg.pose.covariance = [0.5, 0.0, 0.0, 0.0, 0.0, 0.0,
-                             0.0, 0.5, 0.0, 0.0, 0.0, 0.0,
+  odomMsg.pose.covariance = [0.005, 0.0, 0.0, 0.0, 0.0, 0.0,
+                             0.0, 0.005, 0.0, 0.0, 0.0, 0.0,
                              0.0, 0.0, 1.0, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 1.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 1.0, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 0.5]
+                             0.0, 0.0, 0.0, 0.0, 0.0, 0.005]
   
   posePub = rospy.Publisher("/odometry_position2", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
@@ -55,6 +55,7 @@ def convert():
  
   lasSub = rospy.Subscriber("/pose2D", geometry_msgs.msg.Pose2D, processLaser)
   odomSub = rospy.Subscriber("/odom", nav_msgs.msg.Odometry, processOdometry)
+  twistSub = rospy.Subscriber("/odom", nav_msgs.msg.Odometry, processOdometry)
   
   while not rospy.is_shutdown():
     rate.sleep()

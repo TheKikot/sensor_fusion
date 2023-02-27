@@ -1,0 +1,11 @@
+<?xml version="1.0"?>
+<launch>
+
+  
+  
+  <node name="path_dist_sec" pkg="sensor_fusion" type="path_dist_sec.py" output="screen" />
+  
+  <node name="plot_paths_sec" pkg="sensor_fusion" type="plot_paths_sec.py" output="screen" />
+  
+    
+</launch>
