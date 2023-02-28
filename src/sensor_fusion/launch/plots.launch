@@ -1,11 +1,9 @@
 <?xml version="1.0"?>
 <launch>
-
   
+  <node name="plot_paths" pkg="sensor_fusion" type="plot_paths_odom.py" output="screen" />
   
-  <node name="path_dist_sec" pkg="sensor_fusion" type="path_dist_sec.py" output="screen" />
-  
-  <node name="plot_paths_sec" pkg="sensor_fusion" type="plot_paths_sec.py" output="screen" />
+  <node name="plot_err" pkg="sensor_fusion" type="plot_err.py" output="screen" />
   
     
 </launch>

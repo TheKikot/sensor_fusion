@@ -63,7 +63,7 @@ def processLaser(lasMsg):
                              0.0, 0.0, 0.1, 0.0, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.01, 0.0, 0.0,
                              0.0, 0.0, 0.0, 0.0, 0.01, 0.0,
-                             0.0, 0.0, 0.0, 0.0, 0.0, 0.01]
+                             0.0, 0.0, 0.0, 0.0, 0.0, 1e-5]
   
   posePub = rospy.Publisher("/laser_position", nav_msgs.msg.Odometry, queue_size=100)
   posePub.publish(odomMsg)
@@ -113,7 +113,7 @@ if __name__ == "__main__":
     rospy.init_node("convert_pose")
     rate = rospy.Rate(50)
  
-    init_pose(20)
+    init_pose(100)
     convert()
   except rospy.ROSInterruptException: pass
 

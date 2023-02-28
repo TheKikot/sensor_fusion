@@ -35,11 +35,10 @@ def plot_distances():
   tfBuffer = tf2_ros.Buffer()
   listener = tf2_ros.TransformListener(tfBuffer)
         
-  odom_path = rospy.wait_for_message("/odom_path", nav_msgs.msg.Path)
-  laser_path = rospy.wait_for_message("/laser_path", nav_msgs.msg.Path)
-  filter_path = rospy.wait_for_message("/filter_path", nav_msgs.msg.Path)
-  filter2_path = rospy.wait_for_message("/filter_path", nav_msgs.msg.Path)
-  gps_path = rospy.wait_for_message("/GPS_path", nav_msgs.msg.Path)
+  odom_path = rospy.wait_for_message("/average_measurements/odom", nav_msgs.msg.Path)
+  laser_path = rospy.wait_for_message("/average_measurements/laser", nav_msgs.msg.Path)
+  filter_path = rospy.wait_for_message("/average_measurements/filter", nav_msgs.msg.Path)
+  gps_path = rospy.wait_for_message("/average_measurements/gps", nav_msgs.msg.Path)
   
   # transform gps_path from map -> odom frame
   time = rospy.Time.now()
@@ -61,12 +60,10 @@ def plot_distances():
   odom_dist = distance(odom_path, gps_path_odom)
   laser_dist = distance(laser_path, gps_path_odom)
   filter_dist = distance(filter_path, gps_path_odom)
-  filter2_dist = distance(filter2_path, gps_path_odom)
   
   plt.plot(range(0, len(odom_dist)), odom_dist, 'r', label='odometry')
   plt.plot(range(0, len(laser_dist)), laser_dist, 'm', label='laser')
-  plt.plot(range(0, len(filter_dist)), filter_dist, 'g', label='ekf')
-  plt.plot(range(0, len(filter2_dist)), filter2_dist, 'y', label='ukf')
+  plt.plot(range(0, len(filter_dist)), filter_dist, 'g', label='filter')
   
   plt.xlabel('point in trajectory')
   plt.ylabel('square distance between points')
@@ -76,7 +73,6 @@ def plot_distances():
   print("mean square error for odometry: ", sum(odom_dist)/len(odom_dist))
   print("mean square error for laser: ", sum(laser_dist)/len(laser_dist))
   print("mean square error for filter: ", sum(filter_dist)/len(filter_dist))
-  print("mean square error for filter: ", sum(filter2_dist)/len(filter2_dist))
 
 if __name__ == "__main__":
 

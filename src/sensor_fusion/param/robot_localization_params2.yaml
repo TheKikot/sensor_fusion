@@ -9,10 +9,10 @@ world_frame: odom
 transform_time_offset: 0.01
 
 smooth_lagged_data: true
-dynamic_process_noise_covariance: false
+dynamic_process_noise_covariance: true
 
 
-odom0: /odometry_position2
+odom0: /odometry_position
 odom0_config: [true,  true,  false,
                false, false, true,
                true, true, false,
@@ -21,7 +21,7 @@ odom0_config: [true,  true,  false,
               
 #odom0_differential: true
 
-odom1: /laser_position2
+odom1: /laser_position
 odom1_config: [true,  true,  false,
                false, false, true,
                false, false, false,

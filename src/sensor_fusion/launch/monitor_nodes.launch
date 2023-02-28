@@ -15,24 +15,22 @@
   <node name="pose_conversion" pkg="sensor_fusion" type="pose_conversion_map_tf.py" output="screen" />
   
   <!-- robot localization filter (ekf) -->
-  <node name="ekf_localization_node" pkg="robot_localization" type="ekf_localization_node" output="screen" >
+  <node name="ekf1" pkg="robot_localization" type="ekf_localization_node" output="screen" >
     <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params.yaml" />
   </node>
+  
+  <!-- robot localization filter (ukf) -->
+  <node name="ekf2" pkg="robot_localization" type="ukf_localization_node" output="screen" >
+    <rosparam command="load" file="$(find sensor_fusion)/param/robot_localization_params2.yaml" />
+    <remap from="/odometry/filtered" to="/odometry/filtered2"/>
+  </node>
+  
   
   <!-- rviz -->
   <node name="rviz" pkg="rviz" type="rviz" args="-d $(find sensor_fusion)/rviz/odom.rviz"/>
   
   <!-- path building and publishing (slow) -->
   <node pkg="sensor_fusion" type="path_building.py" name="path_building" />
-  
-  <!-- experiment: initial pose from GPS data -->
-  
-  <!-- AMCL for map -> odom tf -->
-  <!-- node pkg="amcl" type="amcl" name="amcl" output="screen">
-    <param name="amcl/initial_pose_x" value="0" />
-    <param name="amcl/initial_pose_y" value="0" />
-    <param name="amcl/initial_pose_a" value="0" />
-  </node-->
   
 
   

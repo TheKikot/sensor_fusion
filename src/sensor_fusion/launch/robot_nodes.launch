@@ -7,7 +7,7 @@
   
   <!-- static tf for the laser -->
   <node pkg="tf" type="static_transform_publisher" name="base_link_to_laser" 
-   args="0.125 0.0 0.4 0.0 0.0 0.0 /base_link /hokuyo_laser 20" />
+   args="0.06 0.0 0.4 0.0 0.0 0.0 /base_link /hokuyo_laser 20" />
 
   <!-- Move base -->
   <include file="$(find turtlebot_navigation)/launch/includes/move_base.launch.xml">

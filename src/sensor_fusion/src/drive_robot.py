@@ -6,6 +6,7 @@ import math
 import nav_msgs.msg
 import geometry_msgs.msg
 import tf2_ros
+import tf2_geometry_msgs
 from tf.transformations import quaternion_from_euler, euler_from_quaternion
 
 measurements_odom = nav_msgs.msg.Path()
@@ -17,6 +18,34 @@ laserPub = rospy.Publisher("/average_measurements/laser", nav_msgs.msg.Path, que
 filterPub = rospy.Publisher("/average_measurements/filter", nav_msgs.msg.Path, queue_size=10)
 gpsPub = rospy.Publisher("/average_measurements/gps", nav_msgs.msg.Path, queue_size=10)
 
+
+# initializes an Odometry msg with zeros
+def init_zero_odom():
+  odomMsg = nav_msgs.msg.Odometry()
+  
+  odomMsg.pose.pose.position.x = 0.0
+  odomMsg.pose.pose.position.y = 0.0
+  
+  odomMsg.pose.pose.orientation.x = 0.0
+  odomMsg.pose.pose.orientation.y = 0.0
+  odomMsg.pose.pose.orientation.z = 0.0
+  odomMsg.pose.pose.orientation.w = 0.0
+  
+  return odomMsg
+
+# pretvorba formata informacije o polozaju
+def odom_to_path(msg, path, frame_id):
+  pose = geometry_msgs.msg.PoseStamped()
+  pose.pose = msg.pose.pose
+  pose.header.stamp = msg.header.stamp
+  pose.header.frame_id = msg.header.frame_id
+  
+  path.header.stamp = rospy.Time.now()
+  path.header.frame_id = frame_id
+  path.poses.append(pose)
+  
+  return path
+
 # returns odom1 + odom2*factor, where odom1 and odom2 are nav_msgs.msg.Odometry objects and factor is a real number
 def add_multiplied(odom1, odom2, factor):
   result = nav_msgs.msg.Odometry()
@@ -27,8 +56,15 @@ def add_multiplied(odom1, odom2, factor):
   
   result.pose.pose.position.x = odom1.pose.pose.position.x + factor * odom2.pose.pose.position.x
   result.pose.pose.position.y = odom1.pose.pose.position.y + factor * odom2.pose.pose.position.y
-  
-  result.pose.pose.orientation = quaternion_from_euler(0.0, 0.0, euler_from_quaternion(odom1.pose.pose.orientation)[2] + factor * euler_from_quaternion(odom2.pose.pose.orientation)[2])
+  #print odom1.pose.pose.orientation.x
+  q1 = (odom1.pose.pose.orientation.x, odom1.pose.pose.orientation.y, odom1.pose.pose.orientation.z, odom1.pose.pose.orientation.w)
+  q2 = (odom2.pose.pose.orientation.x, odom2.pose.pose.orientation.y, odom2.pose.pose.orientation.z, odom2.pose.pose.orientation.w)
+  q3 = quaternion_from_euler(0.0, 0.0, ( euler_from_quaternion(q1)[2] + factor * euler_from_quaternion(q2)[2] )
+                                 )
+  result.pose.pose.orientation.x = q3[0]
+  result.pose.pose.orientation.y = q3[1]
+  result.pose.pose.orientation.z = q3[2]
+  result.pose.pose.orientation.w = q3[3]
   
   
   result.pose.covariance = odom2.pose.covariance
@@ -41,30 +77,28 @@ def measure(timesMeasured):
   global measurements_laser
   global measurements_filter
   global measurements_gps
-  tfBuffer = tf2_ros.Buffer()
-  listener = tf2_ros.TransformListener(tfBuffer)
-  odom_avg = nav_msgs.msg.Odometry()
-  laser_avg = nav_msgs.msg.Odometry()
-  filter_avg = nav_msgs.msg.Odometry()
-  gps_avg = nav_msgs.msg.Odometry()
+
+  odom_avg = init_zero_odom()
+  laser_avg = init_zero_odom()
+  filter_avg = init_zero_odom()
+  gps_avg = init_zero_odom()
   
   for i in range(timesMeasured):
+    print "measuring..."
     odom_msg = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
     laser_msg = rospy.wait_for_message("/laser_position", nav_msgs.msg.Odometry)
     filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
-    gps_msg = tf.rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
-    # convert to odom frame to get the position from robot's perspective
-    gps_msg.pose = tfBuffer.transform(gps_msg.pose, 'odom', rospy.Duration(1.0))
-    
+    gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
+        
     odom_avg = add_multiplied(odom_avg, odom_msg, 1/timesMeasured)
     laser_avg = add_multiplied(laser_avg, laser_msg, 1/timesMeasured)
     filter_avg = add_multiplied(filter_avg, filter_msg, 1/timesMeasured)
     gps_avg = add_multiplied(gps_avg, gps_msg, 1/timesMeasured)
     
-  measurements_odom.poses.append(odom_avg)
-  measurements_laser.poses.append(laser_avg)
-  measurements_filter.poses.append(filter_avg)
-  measurements_gps.poses.append(gps_avg)
+  measurements_odom = odom_to_path(odom_avg, measurements_odom, "odom")
+  measurements_laser = odom_to_path(laser_avg, measurements_laser, "odom")
+  measurements_filter = odom_to_path(filter_avg, measurements_filter, "odom")
+  measurements_gps = odom_to_path(gps_avg, measurements_gps, "map")
   
   odomPub.publish(measurements_odom)
   laserPub.publish(measurements_laser)
@@ -106,11 +140,11 @@ def drive(numOfTurns, driveTime, driveSpeed, turnSpeed):
     for i in range(driveTime):
       twistPub.publish(turnLeft)
       rospy.sleep(0.1)
-    for i in range(driveTime):
-      twistPub.publish(stay)
-      # save the points from all sources, average 10 measurements
-      measure(10)
-      rospy.sleep(0.1)
+  
+    twistPub.publish(stay)
+    # save the points from all sources, average 10 measurements
+    measure(10)
+    rospy.sleep(0.1)
     
 if __name__ == "__main__":
 

@@ -10,6 +10,7 @@ import message_filters
 # spremenljivke ki hranijo zapis poti
 global pathOdom
 global pathFilter
+global pathFilter2
 global pathLaser
 global pathGPS
 
@@ -27,15 +28,17 @@ def odom_to_path(msg, path, frame_id):
   return path
   
 # doda vsaki poti novi polozaj
-def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
+def addToPath(odom_msg, laser_msg, filter_msg, filter2_msg, gps_msg):
   global pathOdom
   global pathLaser
   global pathFilter
+  global pathFilter2
   global pathGPS
   
   pathOdom = odom_to_path(odom_msg, pathOdom, "odom")
   pathLaser = odom_to_path(laser_msg, pathLaser, "odom")
   pathFilter = odom_to_path(filter_msg, pathFilter, "odom")
+  pathFilter2 = odom_to_path(filter2_msg, pathFilter2, "odom")
   pathGPS = odom_to_path(gps_msg, pathGPS, "map")
   
   pathPub = rospy.Publisher("/odom_path", nav_msgs.msg.Path, queue_size=10)
@@ -47,6 +50,9 @@ def addToPath(odom_msg, laser_msg, filter_msg, gps_msg):
   pathPub = rospy.Publisher("/filter_path", nav_msgs.msg.Path, queue_size=10)
   pathPub.publish(pathFilter)
   
+  pathPub = rospy.Publisher("/filter2_path", nav_msgs.msg.Path, queue_size=10)
+  pathPub.publish(pathFilter2)
+  
   pathPub = rospy.Publisher("/GPS_path", nav_msgs.msg.Path, queue_size=10)
   pathPub.publish(pathGPS)
   
@@ -57,20 +63,23 @@ def make_path():
   global pathOdom
   global pathLaser
   global pathFilter
+  global pathFilter2
   global pathGPS
 
   pathOdom = nav_msgs.msg.Path()
   pathLaser = nav_msgs.msg.Path()
   pathFilter = nav_msgs.msg.Path()
+  pathFilter2 = nav_msgs.msg.Path()
   pathGPS = nav_msgs.msg.Path()
   
   while not rospy.is_shutdown():
     odom_msg = rospy.wait_for_message("/odom", nav_msgs.msg.Odometry)
     laser_msg = rospy.wait_for_message("/laser_position", nav_msgs.msg.Odometry)
     filter_msg = rospy.wait_for_message("/odometry/filtered", nav_msgs.msg.Odometry)
+    filter2_msg = rospy.wait_for_message("/odometry/filtered2", nav_msgs.msg.Odometry)
     gps_msg = rospy.wait_for_message("/hedgehog_position", nav_msgs.msg.Odometry)
     
-    addToPath(odom_msg, laser_msg, filter_msg, gps_msg)
+    addToPath(odom_msg, laser_msg, filter_msg, filter2_msg, gps_msg)
     
     rate.sleep()
 

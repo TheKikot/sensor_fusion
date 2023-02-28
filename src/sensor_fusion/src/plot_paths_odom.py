@@ -29,6 +29,7 @@ def plot_paths():
   odom_path = rospy.wait_for_message("/odom_path", nav_msgs.msg.Path)
   laser_path = rospy.wait_for_message("/laser_path", nav_msgs.msg.Path)
   filter_path = rospy.wait_for_message("/filter_path", nav_msgs.msg.Path)
+  filter2_path = rospy.wait_for_message("/filter2_path", nav_msgs.msg.Path)
   gps_path = rospy.wait_for_message("/GPS_path", nav_msgs.msg.Path)
   
   # transform gps_path from map -> odom frame
@@ -51,11 +52,13 @@ def plot_paths():
   (odomx, odomy) = extract_coordinates(odom_path)
   (laserx, lasery) = extract_coordinates(laser_path)
   (filterx, filtery) = extract_coordinates(filter_path)
+  (filter2x, filter2y) = extract_coordinates(filter2_path)
   (gpsx, gpsy) = extract_coordinates(gps_path_odom)
   
   plt.plot(odomx, odomy, 'r', label='odometry')
   plt.plot(laserx, lasery, 'm', label='laser')
-  plt.plot(filterx, filtery, 'g', label='filter')
+  plt.plot(filterx, filtery, 'g', label='ekf')
+  plt.plot(filter2x, filter2y, 'y', label='ukf')
   plt.plot(gpsx, gpsy, 'b', label='gps')
   plt.xlabel('x')
   plt.ylabel('y')
